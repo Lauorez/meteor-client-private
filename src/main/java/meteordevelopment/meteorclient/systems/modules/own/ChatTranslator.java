@@ -22,16 +22,8 @@ public class ChatTranslator extends Module {
 
 
     private enum Language {
-        English("en"), Deutsch("de"), Polish("pl");
+        English, Deutsch, Polish;
 
-        private final String code;
 
-        Language(String code) {
-            this.code = code;
-        }
-
-        public String getCode() {
-            return code;
-        }
     }
 }
