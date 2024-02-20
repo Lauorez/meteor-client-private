@@ -33,6 +33,7 @@ import meteordevelopment.meteorclient.systems.modules.render.blockesp.BlockESP;
 import meteordevelopment.meteorclient.systems.modules.render.marker.Marker;
 import meteordevelopment.meteorclient.systems.modules.world.Timer;
 import meteordevelopment.meteorclient.systems.modules.world.*;
+import meteordevelopment.meteorclient.systems.modules.Own.*;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
 import meteordevelopment.meteorclient.utils.misc.MeteorIdentifier;
@@ -90,6 +91,7 @@ public class Modules extends System<Modules> {
         initRender();
         initWorld();
         initMisc();
+        initOwn();
     }
 
     @Override
@@ -534,7 +536,7 @@ public class Modules extends System<Modules> {
         add(new LiquidFiller());
         add(new MountBypass());
         add(new NoGhostBlocks());
-        add(new Nuker());
+        //add(new Nuker());
         add(new StashFinder());
         add(new SpawnProofer());
         add(new Timer());
@@ -568,6 +570,15 @@ public class Modules extends System<Modules> {
         add(new Spam());
         add(new ServerSpoof());
         add(new InventoryTweaks());
+    }
+
+    private void initOwn() {
+        add(new AimAssist());
+        add(new BedFucker());
+        add(new ChatTranslator());
+        add(new Nuker());
+        add(new Sorting());
+        add(new TooManyHacks());
     }
 
     public static class ModuleRegistry extends SimpleRegistry<Module> {
