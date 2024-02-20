@@ -60,6 +60,9 @@ dependencies {
     // Baritone (https://github.com/MeteorDevelopment/baritone)
     modCompileOnly "meteordevelopment:baritone:${project.baritone_version}-SNAPSHOT"
 
+    // Google Translate API
+    implementation 'com.google.cloud:google-cloud-translate:2.3.3'
+
     // Libraries
     library "meteordevelopment:orbit:${project.orbit_version}"
     library "meteordevelopment:starscript:${project.starscript_version}"

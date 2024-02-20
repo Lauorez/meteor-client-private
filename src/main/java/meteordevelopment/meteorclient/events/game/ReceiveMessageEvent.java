@@ -9,9 +9,9 @@ import meteordevelopment.meteorclient.events.Cancellable;
 import net.minecraft.client.gui.hud.MessageIndicator;
 import net.minecraft.text.Text;
 
+
 public class ReceiveMessageEvent extends Cancellable {
     private static final ReceiveMessageEvent INSTANCE = new ReceiveMessageEvent();
-
     private Text message;
     private MessageIndicator indicator;
     private boolean modified;

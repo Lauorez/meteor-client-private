@@ -100,7 +100,7 @@ public class AimAssist extends Module {
     private static final double MULTISHOT_OFFSET = Math.toRadians(10); // accurate-ish offset of crossbow multishot in radians (10° degrees)
 
     public AimAssist() {
-        super(Categories.Own, "AimAssist", "Shows you the best angle to shoot with arrows / trajectories.");
+        super(Categories.Own, "Aim Assist", "Shows you the best angle to shoot with arrows / trajectories.");
     }
 
     private boolean itemFilter(Item item) {
