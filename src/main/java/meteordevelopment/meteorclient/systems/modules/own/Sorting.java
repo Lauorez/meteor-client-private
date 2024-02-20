@@ -1,5 +1,5 @@
 //mit bot alle kisten in feststellbaren bereich ablaufen und checken ob item in inventar = item in chest -> item in chest legen
-package meteordevelopment.meteorclient.systems.modules.Own;
+package meteordevelopment.meteorclient.systems.modules.own;
 
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;

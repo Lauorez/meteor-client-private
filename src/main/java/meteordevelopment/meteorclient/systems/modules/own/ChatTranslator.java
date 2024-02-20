@@ -1,4 +1,4 @@
-package meteordevelopment.meteorclient.systems.modules.Own;
+package meteordevelopment.meteorclient.systems.modules.own;
 
 
 import meteordevelopment.meteorclient.settings.EnumSetting;

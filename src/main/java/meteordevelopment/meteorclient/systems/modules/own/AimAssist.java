@@ -1,6 +1,6 @@
 //so wie die flugbahn auf das target wird rot angezeigt, die wie du aimst wird blau angezeigt und wenn die
 // beiden sich überschneiden wirds kp lila angezeigt
-package meteordevelopment.meteorclient.systems.modules.Own;
+package meteordevelopment.meteorclient.systems.modules.own;
 
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
