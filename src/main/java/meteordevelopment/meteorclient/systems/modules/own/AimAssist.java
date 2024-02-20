@@ -7,6 +7,6 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 
 public class AimAssist extends Module {
     public AimAssist() {
-        super(Categories.Own, "AimAssist", "Shows you the best angle to shoot with arrows/ trajectorys.");
+        super(Categories.Own, "AimAssist", "Shows you the best angle to shoot with arrows / trajectories.");
     }
 }
