@@ -77,7 +77,7 @@ public class BedFucker extends Module {
     private final BlockPos.Mutable lastBedPos = new BlockPos.Mutable();
 
     public BedFucker() {
-        super(Categories.Own, "BedFucker", "Breaks bed blocks around you.");
+        super(Categories.Own, "Bed Fucker", "Breaks bed blocks around you.");
     }
 
     @Override
