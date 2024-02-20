@@ -41,7 +41,6 @@ public class ProjectileEntitySimulator {
 
     public boolean set(Entity user, ItemStack itemStack, double simulated, boolean accurate, double tickDelta) {
         Item item = itemStack.getItem();
-
         if (item instanceof BowItem) {
             double charge = BowItem.getPullProgress(mc.player.getItemUseTime());
             if (charge <= 0) return false;
