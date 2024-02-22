@@ -38,6 +38,45 @@ public class ProjectileEntitySimulator {
 
     private double gravity;
     private double airDrag, waterDrag;
+    private boolean aimAssist = false;
+
+    public boolean set(Entity user, ItemStack itemStack, double simulated, boolean accurate, double tickDelta, boolean aimAssist) {
+        Item item = itemStack.getItem();
+        this.aimAssist = aimAssist;
+        if (item instanceof BowItem) {
+            double charge = BowItem.getPullProgress(mc.player.getItemUseTime());
+            if (charge <= 0) return false;
+
+            set(user, 0, charge * 3, simulated, 0.05000000074505806, 0.6, accurate, tickDelta);
+        }
+        else if (item instanceof CrossbowItem) {
+            if (!CrossbowItem.isCharged(itemStack)) return false;
+            if (CrossbowItem.hasProjectile(itemStack, Items.FIREWORK_ROCKET)) {
+                set(user, 0, CrossbowItemAccessor.getSpeed(itemStack), simulated, 0, 0.6, accurate, tickDelta);
+            }
+            else set(user, 0, CrossbowItemAccessor.getSpeed(itemStack), simulated, 0.05000000074505806, 0.6, accurate, tickDelta);
+        }
+        else if (item instanceof FishingRodItem) {
+            setFishingBobber(user, tickDelta);
+        }
+        else if (item instanceof TridentItem) {
+            set(user, 0, 2.5, simulated, 0.05000000074505806, 0.99, accurate, tickDelta);
+        }
+        else if (item instanceof SnowballItem || item instanceof EggItem || item instanceof EnderPearlItem) {
+            set(user, 0, 1.5, simulated, 0.03, 0.8, accurate, tickDelta);
+        }
+        else if (item instanceof ExperienceBottleItem) {
+            set(user, -20, 0.7, simulated, 0.07, 0.8, accurate, tickDelta);
+        }
+        else if (item instanceof ThrowablePotionItem) {
+            set(user, -20, 0.5, simulated, 0.05, 0.8, accurate, tickDelta);
+        }
+        else {
+            return false;
+        }
+
+        return true;
+    }
 
     public boolean set(Entity user, ItemStack itemStack, double simulated, boolean accurate, double tickDelta) {
         Item item = itemStack.getItem();
@@ -218,9 +257,16 @@ public class ProjectileEntitySimulator {
             vec3d3 = hitResult.getPos();
         }
 
-        HitResult hitResult2 = ProjectileUtil.getEntityCollision(mc.world, mc.player, vec3d3, pos3d, new Box(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z).stretch(mc.player.getVelocity()).expand(1.0D), entity -> !entity.isSpectator() && entity.isAlive() && entity.canHit());
-        if (hitResult2 != null) {
-            hitResult = hitResult2;
+        if (!aimAssist) {
+            HitResult hitResult2 = ProjectileUtil.getEntityCollision(mc.world, mc.player, vec3d3, pos3d, new Box(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z).stretch(mc.player.getVelocity()).expand(1.0D), entity -> !entity.isSpectator() && entity.isAlive() && entity.canHit());
+            if (hitResult2 != null) {
+                hitResult = hitResult2;
+            }
+        } else {
+            HitResult hitResult2 = ProjectileUtil.getEntityCollision(mc.world, mc.player, vec3d3, pos3d, new Box(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z).stretch(mc.player.getVelocity()).expand(1.0D), entity -> !entity.isSpectator() && entity.isAlive() && entity.canHit());
+            if (hitResult2 != null) {
+                hitResult = hitResult2;
+            }
         }
 
         return hitResult;

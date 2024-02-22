@@ -16,6 +16,10 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.*;
@@ -25,11 +29,13 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -44,6 +50,13 @@ public class AimAssist extends Module {
         .description("Items to display trajectories for.")
         .defaultValue(getDefaultItems())
         .filter(this::itemFilter)
+        .build()
+    );
+
+    private final Setting<Set<EntityType<?>>> entities = sgGeneral.add(new EntityTypeListSetting.Builder()
+        .name("entities")
+        .description("Entities to target.")
+        .defaultValue(EntityType.PLAYER)
         .build()
     );
 
@@ -138,14 +151,14 @@ public class AimAssist extends Module {
         if (!items.get().contains(itemStack.getItem())) return;
 
         // Calculate paths
-        if (!simulator.set(player, itemStack, 0, accurate.get(), tickDelta)) return;
+        if (!simulator.set(player, itemStack, 0, accurate.get(), tickDelta, true)) return;
         getEmptyPath().calculate();
 
         if (itemStack.getItem() instanceof CrossbowItem && EnchantmentHelper.getLevel(Enchantments.MULTISHOT, itemStack) > 0) {
-            if (!simulator.set(player, itemStack, MULTISHOT_OFFSET, accurate.get(), tickDelta)) return; // left multishot arrow
+            if (!simulator.set(player, itemStack, MULTISHOT_OFFSET, accurate.get(), tickDelta, true)) return; // left multishot arrow
             getEmptyPath().calculate();
 
-            if (!simulator.set(player, itemStack, -MULTISHOT_OFFSET, accurate.get(), tickDelta)) return; // right multishot arrow
+            if (!simulator.set(player, itemStack, -MULTISHOT_OFFSET, accurate.get(), tickDelta, true)) return; // right multishot arrow
             getEmptyPath().calculate();
         }
     }
@@ -160,21 +173,52 @@ public class AimAssist extends Module {
 
     @EventHandler
     private void onRender(Render3DEvent event) {
-        for (PlayerEntity player : mc.world.getPlayers()) {
-            if (player != mc.player) continue;
 
-            calculatePath(player, event.tickDelta);
-            for (Path path : paths) path.render(event);
-        }
-
+        // Handle fired Projectiles option
         if (firedProjectiles.get()) {
-            for (Entity entity : mc.world.getEntities()) {
-                if (entity instanceof ProjectileEntity) {
-                    calculateFiredPath(entity, event.tickDelta);
+            for (Entity ent : mc.world.getEntities()) {
+                if (ent instanceof ProjectileEntity) {
+                    calculateFiredPath(ent, event.tickDelta);
                     for (Path path : paths) path.render(event);
                 }
             }
         }
+
+        // Calculate the path
+        calculatePath(mc.player, event.tickDelta);
+        for (Path path : paths) path.render(event);
+
+        // Get entities from setting and create entity list
+        List<LivingEntity> _entities = new ArrayList<>();
+        for (Entity entity : mc.world.getEntities()) if (entities.get().contains(entity.getType()) && entity != mc.player) _entities.add((LivingEntity) entity);
+
+        // Render for every entity
+        for (LivingEntity entity : _entities) {
+            // Sanity check
+            if (entity == null) return;
+            float speed = BowItem.getPullProgress(mc.player.getItemUseTime()) * 3;
+            if (speed <= 0) return;
+
+            // Draw a box around the determined entity
+            double x = MathHelper.lerp(event.tickDelta, entity.lastRenderX, entity.getX()) - entity.getX();
+            double y = MathHelper.lerp(event.tickDelta, entity.lastRenderY, entity.getY()) - entity.getY();
+            double z = MathHelper.lerp(event.tickDelta, entity.lastRenderZ, entity.getZ()) - entity.getZ();
+            Box box = entity.getBoundingBox();
+            event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
+
+            // Draw the movement predicting box
+            Vec3d entityVelocity = entity.getVelocity();
+            if (entity.isOnGround()) entityVelocity = entityVelocity.add(0, -entityVelocity.getY(), 0);
+            float distancePlayerToTarget = mc.player.distanceTo(entity);
+            float flightTime = distancePlayerToTarget / speed;
+            Vec3d offsetVector = entityVelocity.multiply(flightTime);
+            x += offsetVector.getX();
+            y += offsetVector.getY();
+            z += offsetVector.getZ();
+            event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
+        }
+
+
     }
 
     private class Path {
@@ -253,17 +297,6 @@ public class AimAssist extends Module {
                 entity = ((EntityHitResult) result).getEntity();
 
                 points.add(Utils.set(vec3s.get(), result.getPos()).add(0, entity.getHeight() / 2, 0));
-
-                Vec3d entityVelocity = entity.getVelocity();
-
-                float distancePlayerToTarget = mc.player.distanceTo(entity);
-                float speed = BowItem.getPullProgress(mc.player.getItemUseTime()) * 3;
-
-                float flightTime = distancePlayerToTarget / speed;
-
-                Vec3d offsetVector = entityVelocity.multiply(flightTime);
-
-                points.add(Utils.set(vec3s.get(), result.getPos()).add(0, entity.getHeight() / 2, 0).add(offsetVector.toVector3f()));
             }
         }
 
@@ -289,22 +322,6 @@ public class AimAssist extends Module {
                 double z = (entity.getZ() - entity.prevZ) * event.tickDelta;
 
                 Box box = entity.getBoundingBox();
-                event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
-
-
-                Vec3d entityVelocity = entity.getVelocity();
-
-                float distancePlayerToTarget = mc.player.distanceTo(entity);
-                float speed = BowItem.getPullProgress(mc.player.getItemUseTime()) * 3;
-
-                float flightTime = distancePlayerToTarget / speed;
-
-                Vec3d offsetVector = entityVelocity.multiply(flightTime);
-
-                x += offsetVector.getX();
-                y += offsetVector.getY();
-                z += offsetVector.getZ();
-
                 event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
             }
         }

@@ -17,6 +17,11 @@
     <img src="https://tokei.rs/b1/github/MeteorDevelopment/meteor-client" alt="GitHub lines of code"/>
 </div>
 
+## Disclaimer - Forked Project
+
+#### This is a fork of the original meteorclient repository for personal modification and use. It therefore contains the original sourcecode of meteorclient by meteordevelopment.
+#### Download or use this fork at own risk.
+
 ## Usage
 
 ### Building
