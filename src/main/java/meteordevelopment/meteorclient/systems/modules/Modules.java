@@ -552,7 +552,7 @@ public class Modules extends System<Modules> {
     private void initMisc() {
         add(new Swarm());
         add(new AntiPacketKick());
-        add(new AutoClicker());
+        //add(new AutoClickerOld()); Moved to own
         add(new AutoLog());
         add(new AutoReconnect());
         add(new AutoRespawn());
@@ -573,6 +573,7 @@ public class Modules extends System<Modules> {
     }
 
     private void initOwn() {
+        add(new AutoClicker());
         add(new AimAssist());
         add(new BedFucker());
         add(new ChatTranslator());
