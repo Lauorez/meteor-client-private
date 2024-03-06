@@ -5,14 +5,13 @@ import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class Sorting extends Module {
-    private static final int SEARCH_RADIUS = 5;
+    private static final int rad = 5;
 
     public Sorting() {
         super(Categories.Own, "Sorting", "Scans nearby chests and tries to stack inventory items into these chests.");
@@ -27,7 +26,7 @@ public class Sorting extends Module {
     }
 
     private void findChestsAroundPlayer(World world, BlockPos playerPos) {
-        BlockPos.streamOutwards(playerPos, SEARCH_RADIUS, SEARCH_RADIUS, SEARCH_RADIUS)
+        BlockPos.streamOutwards(playerPos, rad, rad, rad)
             .map(pos -> world.getBlockEntity(pos))
             .filter(entity -> entity instanceof ChestBlockEntity)
             .map(entity -> (ChestBlockEntity) entity)
