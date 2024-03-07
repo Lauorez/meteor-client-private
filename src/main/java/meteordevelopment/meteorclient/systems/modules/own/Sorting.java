@@ -1,14 +1,17 @@
 package meteordevelopment.meteorclient.systems.modules.own;
 
-import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.events.meteor.ActiveModulesChangedEvent;
+import meteordevelopment.meteorclient.events.packets.InventoryEvent;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
-
+import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 public class Sorting extends Module {
     private static final int rad = 5;
@@ -18,26 +21,30 @@ public class Sorting extends Module {
     }
 
     @EventHandler
-    private void onTickPre(TickEvent.Pre event) {
+    private void onPacketReceive(InventoryEvent event) {
+        System.out.println(event.packet.getContents());
+    }
+
+    @Override
+    public void onActivate() {
+        super.onActivate();
+
         if (mc.player == null || mc.world == null) return;
-
         BlockPos playerPos = mc.player.getBlockPos();
-        findChestsAroundPlayer(mc.world, playerPos);
+        findChestsAroundPlayer(playerPos);
     }
 
-    private void findChestsAroundPlayer(World world, BlockPos playerPos) {
+
+    private void findChestsAroundPlayer(BlockPos playerPos) {
         BlockPos.streamOutwards(playerPos, rad, rad, rad)
-            .map(pos -> world.getBlockEntity(pos))
-            .filter(entity -> entity instanceof ChestBlockEntity)
-            .map(entity -> (ChestBlockEntity) entity)
-            .forEach(this::processChest);
+            .forEach(pos -> {
+                if (mc.world.getBlockEntity(pos) instanceof ChestBlockEntity) processChest(pos);
+            });
     }
 
-    private void processChest(ChestBlockEntity chest) {
-        System.out.println("Chest at " + chest.getPos() + " contains:");
-        for (int slot = 0; slot < chest.size(); slot++) {
-            ItemStack stack = chest.getStack(slot);
-                System.out.println(stack.getName().getString() + " x " + stack.getCount() + " at slot " + slot);
-        }
+    private void processChest(BlockPos pos) {
+        Rotations.rotate(Rotations.getYaw(pos), Rotations.getPitch(pos), () -> {
+            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), Direction.UP, pos, true));
+        });
     }
 }
