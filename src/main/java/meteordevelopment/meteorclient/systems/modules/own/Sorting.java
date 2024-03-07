@@ -42,6 +42,7 @@ public class Sorting extends Module {
             });
     }
 
+
     private void processChest(BlockPos pos) {
         Rotations.rotate(Rotations.getYaw(pos), Rotations.getPitch(pos), () -> {
             mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), Direction.UP, pos, true));
