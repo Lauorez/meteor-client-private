@@ -12,6 +12,7 @@ import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -33,36 +34,45 @@ public class Sorting extends Module {
         .min(0)
         .build()
     );
+    private final Setting<Boolean> includeHotbar = sgGeneral.add(new BoolSetting.Builder()
+        .name("include-hotbar")
+        .description("Whether to sort away hotbar or not.")
+        .defaultValue(true)
+        .build()
+    );
 
     public Sorting() {
         super(Categories.Own, "Sorting", "Scans nearby chests and tries to stack inventory items into these chests.");
     }
 
-    List<ItemStack> playerInv = new ArrayList<>();
 
     @EventHandler
     private void onInventory(InventoryEvent event) {
-        List<ItemStack> chestInv = event.packet.getContents();
+        List<ItemStack> inv = event.packet.getContents();
 
-        for (ItemStack itemStack : playerInv) {
-            if (chestInv.contains(itemStack)) {
-                mc.interactionManager.clickSlot(event.packet.getSyncId(), chestInv.indexOf(itemStack), playerInv.indexOf(itemStack), SlotActionType.SWAP, mc.player);
+        int hotbar = 0;
+        if (!includeHotbar.get()) hotbar = 9;
+
+        // Das For-Schleifen-Gedöns könnte man noch optimieren,
+        // und zwar wie man feststellt, ob die items in der Kiste bereits vorkommen oder nicht
+        // zwei for schleifen ist da eher ineffizient i guess
+
+        for (int i = inv.size() - (36 - hotbar); i < inv.size(); i++) {
+            ItemStack playerItemStack = inv.get(i);
+            if (playerItemStack.getItem().equals(Items.AIR)) continue;
+            for (int j = 0; j < inv.size() - 36; j++) {
+                ItemStack chestItemStack = inv.get(j);
+                if (chestItemStack.getItem().equals(Items.AIR)) continue;
+                if (playerItemStack.getItem().equals(chestItemStack.getItem())) {
+                    mc.interactionManager.clickSlot(event.packet.getSyncId(), i, 0, SlotActionType.QUICK_MOVE, mc.player);
+                }
             }
         }
-        // Hallo Theo, kommentiere diese Zeile aus, um das Öffnen der Kiste zu sehen. GaLiGrü
         mc.player.closeHandledScreen();
-    }
-
-    @EventHandler
-    private void onPacketSent(PacketEvent.Send event) {
-        System.out.println(event.packet.toString());
     }
 
     public void onActivate() {
         if (mc.player == null || mc.world == null) return;
-        for (int i = 0; i < mc.player.getInventory().size(); i++) {
-            playerInv.add(mc.player.getInventory().getStack(i));
-        }
 
         BlockPos playerPos = mc.player.getBlockPos();
         findChestsAroundPlayer(playerPos);
